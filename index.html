@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Správa rezervací</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Správa rezervací</h1>
+        </header>
+
+        <main class="app-main">
+            <section class="filter-section">
+                <h2>Filtrovat</h2>
+                <div class="input-group">
+                    <label for="filter-name"><b>Filtrovat podle jména</b></label>
+                    <input type="text" id="filter-name" placeholder="Hledat podle jména">
+                </div>
+                <div class="input-group">
+                    <label for="filter-phone"><b>Filtrovat podle telefonního čísla</b></label>
+                    <input type="text" id="filter-phone" placeholder="Hledat podle telefonního čísla">
+                </div>
+            </section>
+
+            <section class="list-section">
+                <h2>Seznam rezervací</h2>
+
+                <div class="list-controls">
+                    <div class="rows-per-page">
+                        <label for="rows-select">Zobrazit řádků:</label>
+                        <select id="rows-select">
+                            <option value="5">5</option>
+                            <option value="20" selected>20</option> <option value="50">50</option>
+                        </select>
+                    </div>
+                    <div class="pagination-info">
+                        <span id="page-info">Stránka 1 z 1</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="prev-page" class="btn btn-secondary" disabled>&lt; Předchozí</button>
+                        <button id="next-page" class="btn btn-secondary" disabled>Další &gt;</button>
+                    </div>
+                </div>
+                <table id="reservations-table">
+                  <thead>
+                    <tr>
+                      <th>Jméno</th>
+                      <th>Telefon</th>
+                      <th>Zóna</th>
+                      <th>Datum</th>
+                      <th>Čas</th>
+                      <th>Platba</th>
+                      <th style="width: 20%;">Poznámky</th>
+                      <th>Akce</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reservations-tbody">
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="form-section">
+                <h2>Přidat rezervaci</h2>
+                 <div class="input-group">
+                    <label for="jmeno"><b>Jméno *</b></label>
+                    <input type="text" id="jmeno" placeholder="Vložte jméno">
+                </div>
+                <div class="input-group">
+                    <label for="telefon"><b>Telefonní číslo *</b></label>
+                    <input type="text" id="telefon" placeholder="Vložte telefonní číslo">
+                </div>
+                <div class="input-group">
+                    <label for="cisloBytu"><b>Zóna *</b></label>
+                    <select id="cisloBytu">
+                         </select>
+                </div>
+                <div class="input-group">
+                    <label for="time"><b>Čas rezervace *</b></label>
+                    <select id="time">
+                        </select>
+                </div>
+                <div class="input-group">
+                    <label for="date"><b>Datum *</b></label>
+                    <input type="date" id="date">
+                </div>
+                <div class="input-group">
+                    <label><b>Stav platby:</b></label>
+                    <select id="zaplaceno">
+                        <option value="Nezaplaceno">Nezaplaceno</option>
+                        <option value="Zaplaceno">Zaplaceno</option>
+                        <option value="Storno">Storno</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="poznamky"><b>Poznámky</b></label>
+                    <textarea id="poznamky" placeholder="Klient si přeje..."></textarea>
+                </div>
+                <div id="form-error-message" class="form-message error-message" style="display: none;"></div>
+                <div id="form-success-message" class="form-message success-message" style="display: none;"></div>
+                <button id="add-user" class="btn btn-primary">Přidat rezervaci</button>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

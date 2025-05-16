@@ -1,0 +1,357 @@
+body {
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    color: #343a40;
+    line-height: 1.6;
+}
+
+.app-container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+    color: #007bff;
+    margin-bottom: 30px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.app-main section {
+    margin-bottom: 30px;
+    padding: 25px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.app-main section h2 {
+     margin-top: 0;
+     margin-bottom: 25px;
+     color: #495057;
+     font-weight: 600;
+     border-bottom: 1px solid #e9ecef;
+     padding-bottom: 10px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.input-group label b::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: normal;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    background-color: #fff;
+}
+
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007bff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 10px 10px;
+    padding-right: 35px;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+input.input-error, select.input-error, textarea.input-error {
+    border-color: #dc3545 !important;
+     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    user-select: none;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    border: 1px solid #6c757d;
+}
+.btn-secondary:hover:not(:disabled) {
+     background-color: #5a6268;
+     border-color: #545b62;
+}
+
+
+/* --- List Controls Styles --- */
+.list-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.rows-per-page label {
+    margin-right: 8px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.rows-per-page select {
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    font-size: 0.9em;
+    min-width: 60px;
+}
+
+.pagination-info {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin: 0 10px; /* Add some space */
+}
+
+.pagination-controls button {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+/* --- Table Styles --- */
+.list-section {
+    overflow-x: auto;
+}
+
+#reservations-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.95em;
+}
+
+#reservations-table th,
+#reservations-table td {
+    border: 1px solid #dee2e6;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+#reservations-table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+#reservations-table tbody tr:nth-child(even) {
+     background-color: #f8f9fa;
+}
+#reservations-table tbody tr:hover {
+     background-color: #e2e6ea;
+}
+
+/* Status row styling */
+#reservations-table tr.paid td {
+    background-color: #d4edda !important;
+}
+#reservations-table tr.paid {
+    border-left: 4px solid #28a745;
+}
+
+#reservations-table tr.cancelled td {
+    background-color: #f8d7da !important;
+    color: #58151c;
+    text-decoration: line-through;
+}
+#reservations-table tr.cancelled {
+     border-left: 4px solid #dc3545;
+}
+
+/* Button styling within table */
+#reservations-table .btn {
+    padding: 5px 10px;
+    font-size: 14px;
+    font-weight: normal;
+    margin-right: 5px;
+}
+#reservations-table .btn:last-child {
+    margin-right: 0;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+    color: #333;
+    border: 1px solid #e0a800;
+}
+.btn-edit:hover {
+    background-color: #e0a800;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+     color: white;
+     border: 1px solid #c82333;
+}
+.btn-danger:hover {
+     background-color: #c82333;
+}
+
+/* --- Message Styles --- */
+.form-message {
+    padding: 12px 15px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-size: 15px;
+    border: 1px solid transparent;
+}
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+/* --- Calendar Section Styles --- */
+.calendar-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.calendar-section h2 {
+     margin-top: 0;
+     margin-bottom: 25px;
+     color: #495057;
+     font-weight: 600;
+     border-bottom: 1px solid #e9ecef;
+     padding-bottom: 10px;
+}
+
+.calendar-wrapper {
+    position: relative;
+}
+
+#div_block-16-15 {
+    display: none;
+  }
+
+  #_header-2-15 {
+    display: none;
+  }
+
+/* --- Layout Order --- */
+.app-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-section { order: 1; }   /* Filtr první */
+.list-section { order: 2; }     /* Seznam druhý */
+.form-section { order: 3; }     /* Formulář třetí */
+.calendar-section { order: 4; } /* Kalendář poslední */
+
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .app-container {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        box-shadow: none;
+        border-radius: 0;
+    }
+    .app-main section {
+        padding: 15px;
+    }
+    #reservations-table th,
+    #reservations-table td {
+        padding: 8px;
+        font-size: 0.9em;
+    }
+     #reservations-table .btn {
+         padding: 4px 8px;
+         font-size: 13px;
+     }
+     .list-controls {
+         justify-content: center; /* Centrovat na malých obrazovkách */
+         flex-direction: column; /* Pod sebe */
+         align-items: stretch; /* Roztáhnout prvky */
+     }
+     .pagination-controls {
+         text-align: center; /* Centrovat tlačítka */
+         margin-top: 10px;
+     }
+     .rows-per-page {
+         text-align: center; /* Centrovat výběr počtu řádků */
+     }
+}
