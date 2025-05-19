@@ -73,7 +73,7 @@ const Uzivatel = sequelize.define('uzivatel', {
 // při úplně prvním nasazení na Render (nebo pokud potřebujete
 // znovu vytvořit tabulku na prázdném perzistentním disku).
 // Po úspěšném vytvoření tabulky ho ZNOVU ZAKOMENTUJTE.
-/*
+
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být vytvořena/synchronizována.');
@@ -82,7 +82,7 @@ sequelize.sync({ alter: true })
     .catch(err => {
         console.error('RENDER DEPLOY (SYNC): Chyba při synchronizaci:', err);
     });
-*/
+
 // --- Konec bloku pro synchronizaci ---
 
 
