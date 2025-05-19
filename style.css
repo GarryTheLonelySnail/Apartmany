@@ -238,6 +238,22 @@ textarea {
      border-left: 4px solid #dc3545; 
 }
 
+#reservations-table td .status-paid {
+    color: green;
+    font-weight: bold;
+    background-color: #d4edda; /* Lehké zelené pozadí */
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+#reservations-table td .status-unpaid {
+    color: red;
+    font-weight: bold;
+    background-color: #f8d7da; /* Lehké červené pozadí */
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
 /* Button styling within table */
 #reservations-table .btn {
     padding: 5px 10px;
