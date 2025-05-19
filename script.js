@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = reservationsTbody.insertRow();
             if (user.zaplaceno === 'Zaplaceno') { row.classList.add('paid'); }
             else if (user.zaplaceno === 'Storno') { row.classList.add('cancelled'); }
+        });
             let formattedDate = user.date;
             try {
                 if (user.date) {
