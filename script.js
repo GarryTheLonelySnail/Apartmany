@@ -92,19 +92,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderTableRows(usersToDisplay) {
-        reservationsTbody.innerHTML = '';
+        reservationsTbody.innerHTML = ''; // Clear previous rows
 
         if (usersToDisplay.length === 0 && allUsers.length > 0) {
              const row = reservationsTbody.insertRow();
              const cell = row.insertCell();
-             cell.colSpan = 8;
+             cell.colSpan = 8; // Upraveno na 8 sloupců
              cell.textContent = 'Nebyly nalezeny žádné rezervace odpovídající filtru.';
              cell.style.textAlign = 'center'; cell.style.fontStyle = 'italic'; cell.style.padding = '20px';
              return;
         } else if (usersToDisplay.length === 0) {
              const row = reservationsTbody.insertRow();
              const cell = row.insertCell();
-             cell.colSpan = 8;
+             cell.colSpan = 8; // Upraveno na 8 sloupců
              cell.textContent = 'Načítání rezervací...';
              cell.style.textAlign = 'center'; cell.style.fontStyle = 'italic'; cell.style.padding = '20px';
              return;
@@ -112,27 +112,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
         usersToDisplay.forEach(user => {
             const row = reservationsTbody.insertRow();
-            if (user.zaplaceno === 'Zaplaceno') { row.classList.add('paid'); }
-            else if (user.zaplaceno === 'Storno') { row.classList.add('cancelled'); }
+
+            // ZMĚNA ZDE: Přidání tříd pro barvy
+            row.classList.remove('paid', 'unpaid', 'cancelled'); // Odstranit staré třídy pro jistotu
+            if (user.zaplaceno === 'Zaplaceno') {
+                row.classList.add('paid');
+            } else if (user.zaplaceno === 'Nezaplaceno') { // Změněno z 'Storno' na 'Nezaplaceno' pro barvu
+                row.classList.add('unpaid');
+            }
+            // Možnost 'Storno' je nyní odstraněna z formuláře, ale pokud by v DB existovala,
+            // můžete pro ni přidat specifické chování nebo ji ignorovat.
+            // V tomto případě nebude mít žádnou speciální barvu, pokud by 'Storno' hodnota přišla z DB.
+
             let formattedDate = user.date;
             try {
                 if (user.date) {
-                    const dateObj = new Date(user.date + 'T00:00:00'); // Přidání času pro správné zacházení s datem
+                    const dateObj = new Date(user.date + 'T00:00:00');
                     if (!isNaN(dateObj)) {
                         formattedDate = dateObj.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     }
                 }
             } catch (e) { console.error("Date formatting error", e); formattedDate = user.date; }
+
             row.insertCell().textContent = user.jmeno || 'N/A';
             row.insertCell().textContent = user.telefon || 'N/A';
             row.insertCell().textContent = user.cisloBytu ? `Zóna ${user.cisloBytu}` : 'N/A';
             row.insertCell().textContent = formattedDate || 'N/A';
             row.insertCell().textContent = user.time ? user.time.substring(0, 5) : 'N/A';
-            row.insertCell().textContent = user.zaplaceno || 'Nezaplaceno';
+            
+            // ZMĚNA ZDE: Přidání spanu pro barevné zvýraznění textu platby
+            const paymentCell = row.insertCell();
+            const paymentSpan = document.createElement('span');
+            paymentSpan.textContent = user.zaplaceno || 'Nezaplaceno';
+            if (user.zaplaceno === 'Zaplaceno') {
+                paymentSpan.classList.add('status-paid');
+            } else if (user.zaplaceno === 'Nezaplaceno') {
+                paymentSpan.classList.add('status-unpaid');
+            }
+            paymentCell.appendChild(paymentSpan);
+
             const notesCell = row.insertCell();
             const noteText = user.poznamky || '';
             notesCell.textContent = noteText.length > 30 ? noteText.substring(0, 27) + '...' : noteText;
             if (noteText.length > 30) { notesCell.title = noteText; }
+
             const actionCell = row.insertCell();
             actionCell.style.whiteSpace = 'nowrap';
             const editButton = document.createElement('button');
@@ -143,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
             actionCell.appendChild(editButton);
+
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Smazat';
             deleteButton.classList.add('btn', 'btn-danger');
