@@ -1,3 +1,5 @@
+// server.js
+
 // --- Importy modulů ---
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -7,7 +9,8 @@ const path = require('path');
 
 // --- Nastavení aplikace Express ---
 const app = express();
-const port = 5000;
+// Použít port z proměnné prostředí (pro Render) nebo výchozí 5000 pro lokální vývoj
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -21,7 +24,9 @@ app.get('/', (req, res) => {
 // --- Připojení k databázi Sequelize ---
 const sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: 'C:\\Users\\marti\\apartmany.db' // !! ZKONTROLUJTE SPRÁVNOST TÉTO CESTY !!
+    // Cesta k databázi na perzistentním disku Renderu
+    storage: '/data/apartmany.db', // Důležité pro Render!
+    logging: console.log // Zapne logování SQL dotazů pro ladění (můžete nastavit na false v produkci)
 });
 
 // --- Definice modelu Uzivatel ---
@@ -60,8 +65,26 @@ const Uzivatel = sequelize.define('uzivatel', {
     }
 }, {
     tableName: 'uzivatele',   // Explicitně definovaný název tabulky
-    timestamps: false
+    timestamps: false          // Bez automatických sloupců createdAt a updatedAt
 });
+
+// --- Deaktivovaná synchronizace databáze pro běžný provoz ---
+// Tento blok by měl být odkomentován a použit POUZE JEDNORÁZOVĚ
+// při úplně prvním nasazení na Render (nebo pokud potřebujete
+// znovu vytvořit tabulku na prázdném perzistentním disku).
+// Po úspěšném vytvoření tabulky ho ZNOVU ZAKOMENTUJTE.
+/*
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log('RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být vytvořena/synchronizována.');
+        console.log('RENDER DEPLOY (SYNC): PO ÚSPĚŠNÉM NASAZENÍ TENTO BLOK ZNOVU ZAKOMENTUJTE v server.js a commitněte změnu!');
+    })
+    .catch(err => {
+        console.error('RENDER DEPLOY (SYNC): Chyba při synchronizaci:', err);
+    });
+*/
+// --- Konec bloku pro synchronizaci ---
+
 
 // --- API Endpoints ---
 
@@ -144,6 +167,6 @@ app.delete('/uzivatele/:id', async (req, res) => {
 
 // --- Spuštění serveru ---
 app.listen(port, () => {
-    console.log(`Server běží na http://localhost:${port}`);
-    console.log('POZN: sequelize.sync() je deaktivováno pro běžný provoz.');
+    console.log(`Server běží na portu ${port}. Přístup přes veřejnou URL Renderu (např. https://apartmany.onrender.com).`);
+    console.log('POZN: sequelize.sync() by měl být zakomentován pro běžný provoz.');
 });
