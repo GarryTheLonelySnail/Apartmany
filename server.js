@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 const sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: '/data/apartmany.db', // Cesta na perzistentním disku Renderu
-    logging: console.log // Zapne logování SQL dotazů pro ladění na Renderu
+    logging: console.log // Zapne logování SQL dotazů pro ladění na Renderu (můžete nastavit na false v produkci)
 });
 
 // --- Definice modelu Uzivatel ---
@@ -35,16 +35,16 @@ const Uzivatel = sequelize.define('uzivatel', {
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: true, // Ponecháno jako allowNull: true
+        allowNull: true, // Povoluje NULL v databázi
         validate: {
-            isEmail: true
+            isEmail: true // Validuje formát, POKUD je hodnota zadána (ne NULL)
         }
     },
     telefon: {
          type: DataTypes.STRING,
          allowNull: false
     },
-    zaplaceno: { // Název sloupce zůstává 'zaplaceno', ukládá 'Dostavil se' / 'Nedostavil se'
+    zaplaceno: {
         type: DataTypes.STRING,
         defaultValue: 'Dostavil se'
     },
@@ -56,14 +56,14 @@ const Uzivatel = sequelize.define('uzivatel', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    time: { // Začátek rezervace
+    time: {
         type: DataTypes.TIME,
         allowNull: false
     },
-    timeEnd: { // Konec rezervace
+    timeEnd: {
         type: DataTypes.TIME,
-        allowNull: true, // DOČASNĚ true, aby prošel ALTER TABLE, pokud tam jsou data
-        defaultValue: null // Výchozí hodnota pro nové sloupce v existujících řádcích
+        allowNull: true,
+        defaultValue: null
     },
     date: {
          type: DataTypes.DATEONLY,
@@ -74,21 +74,22 @@ const Uzivatel = sequelize.define('uzivatel', {
     timestamps: false
 });
 
-// --- DOČASNĚ ODKOMENTUJTE TENTO BLOK POUZE PRO JEDNO NASAZENÍ NA RENDER ---
-// --- ABY SE AKTUALIZOVALO SCHÉMA DATABÁZE (PŘIDALY SLOUPCE email a timeEnd) ---
-sequelize.sync({ alter: true })
+// --- Deaktivovaná synchronizace databáze pro běžný provoz ---
+/*
+sequelize.sync({ alter: true }) // NEBO force: true
     .then(() => {
-        console.log('<<<<< RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být aktualizována (alter:true). >>>>>');
-        console.log('<<<<< RENDER DEPLOY (SYNC): Zkontrolujte logy pro SQL příkazy jako ALTER TABLE. >>>>>');
-        console.log('<<<<< RENDER DEPLOY (SYNC): PO ÚSPĚŠNÉM NASAZENÍ TENTO BLOK ZNOVU ZAKOMENTUJTE v server.js a commitněte změnu! >>>>>');
+        console.log('<<<<< RENDER DEPLOY (SYNC): Tabulka "uzivatele" ... >>>>>');
+        console.log('<<<<< RENDER DEPLOY (SYNC): TENTO BLOK MUSÍ BÝT ZAKOMENTOVÁN PRO BĚŽNÝ PROVOZ! >>>>>');
     })
     .catch(err => {
-        console.error('<<<<< RENDER DEPLOY (SYNC): Chyba při synchronizaci databáze:', err);
+        console.error('<<<<< RENDER DEPLOY (SYNC): Chyba při synchronizaci:', err);
     });
-// --- KONEC DOČASNÉ ČÁSTI ---
+*/
+// --- KONEC BLOKU PRO SYNCHRONIZACI ---
 
 
-// --- API Endpoints (zůstávají stejné jako v předchozí verzi) ---
+// --- API Endpoints ---
+
 // GET /uzivatele
 app.get('/uzivatele', async (req, res) => {
     try {
@@ -109,16 +110,20 @@ app.get('/uzivatele', async (req, res) => {
 app.post('/uzivatele', async (req, res) => {
     try {
         console.log('RENDER LOG: Přijatá data pro novou rezervaci:', req.body);
-        // Validace pro povinná pole, včetně timeEnd
-        if (!req.body.jmeno || !req.body.telefon || !req.body.cisloBytu || !req.body.time || !req.body.date || !req.body.timeEnd || !req.body.zaplaceno) {
+        const dataToCreate = { ...req.body };
+
+        // Převod prázdného emailu na null pro správnou validaci a uložení
+        if (dataToCreate.email !== undefined && dataToCreate.email.trim() === '') {
+            dataToCreate.email = null;
+        }
+
+        // Základní validace povinných polí
+        if (!dataToCreate.jmeno || !dataToCreate.telefon || !dataToCreate.cisloBytu || !dataToCreate.time || !dataToCreate.date || dataToCreate.timeEnd === undefined || !dataToCreate.zaplaceno) {
              return res.status(400).json({ error: 'Chybí povinné údaje (jmeno, telefon, cisloBytu, time, date, timeEnd, zaplaceno).' });
         }
-        if (req.body.email && typeof req.body.email === 'string' && req.body.email.trim() !== '') {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email)) {
-                return res.status(400).json({ error: 'Neplatný formát e-mailu.' });
-            }
-        }
-        const uzivatel = await Uzivatel.create(req.body);
+        // Validace formátu emailu v modelu se uplatní, pokud dataToCreate.email není null
+
+        const uzivatel = await Uzivatel.create(dataToCreate);
         res.status(201).json(uzivatel);
     } catch (err) {
         console.error('RENDER LOG: Chyba při vytváření rezervace:', err);
@@ -133,23 +138,42 @@ app.post('/uzivatele', async (req, res) => {
 app.put('/uzivatele/:id', async (req, res) => {
     try {
         const userId = req.params.id;
-         if (!req.body.jmeno || !req.body.telefon || !req.body.cisloBytu || !req.body.time || !req.body.date || !req.body.timeEnd || !req.body.zaplaceno) {
-             return res.status(400).json({ error: 'Chybí povinné údaje.' });
-         }
-        if (req.body.email && typeof req.body.email === 'string' && req.body.email.trim() !== '') {
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email)) {
-                return res.status(400).json({ error: 'Neplatný formát e-mailu.' });
-            }
+        const dataToUpdate = { ...req.body };
+
+        // Převod prázdného emailu na null
+        if (dataToUpdate.email !== undefined && dataToUpdate.email.trim() === '') {
+            dataToUpdate.email = null;
         }
-        const [numberOfAffectedRows] = await Uzivatel.update(req.body, { where: { id: userId } });
+
+        // Základní validace povinných polí
+        if (!dataToUpdate.jmeno || !dataToUpdate.telefon || !dataToUpdate.cisloBytu || !dataToUpdate.time || !dataToUpdate.date || dataToUpdate.timeEnd === undefined || !dataToUpdate.zaplaceno) {
+             return res.status(400).json({ error: 'Chybí povinné údaje.' });
+        }
+        // Validace formátu emailu v modelu se uplatní, pokud dataToUpdate.email není null
+
+        const [numberOfAffectedRows] = await Uzivatel.update(dataToUpdate, {
+            where: { id: userId },
+            individualHooks: true // Důležité pro spuštění validátorů i při update
+        });
+
         if (numberOfAffectedRows > 0) {
             const updatedUser = await Uzivatel.findByPk(userId);
             res.json(updatedUser);
         } else {
-            res.status(404).json({ error: 'Rezervace nenalezena pro aktualizaci.' });
+            // Mohlo se stát, že záznam existoval, ale data byla stejná, takže update neproběhl.
+            // Nebo záznam neexistoval. Pro jistotu vrátíme aktuální stav.
+            const userExists = await Uzivatel.findByPk(userId);
+            if (userExists) {
+                res.json(userExists); // Data byla stejná, vracíme existující
+            } else {
+                res.status(404).json({ error: 'Rezervace nenalezena pro aktualizaci.' });
+            }
         }
     } catch (err) {
         console.error(`RENDER LOG: Chyba při aktualizaci rezervace ID ${req.params.id}:`, err);
+         if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
+             return res.status(400).json({ error: err.errors.map(e => e.message).join(', ') });
+         }
         res.status(500).json({ error: 'Nastala chyba při aktualizaci rezervace.' });
     }
 });
@@ -174,6 +198,5 @@ app.delete('/uzivatele/:id', async (req, res) => {
 // --- Spuštění serveru ---
 app.listen(port, () => {
     console.log(`Server běží na portu ${port}. Přístup přes veřejnou URL Renderu.`);
-    // Následující řádek odkomentujte až po finálním zakomentování sequelize.sync() bloku
-    // console.log('POZN: sequelize.sync() je deaktivováno pro běžný provoz.');
+    console.log('POZN: sequelize.sync() je deaktivováno pro běžný provoz.');
 });
