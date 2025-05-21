@@ -60,9 +60,9 @@ const Uzivatel = sequelize.define('uzivatel', {
         type: DataTypes.TIME,
         allowNull: false
     },
-    timeEnd: { // Konec rezervace
+    timeEnd: {
         type: DataTypes.TIME,
-        allowNull: false
+        allowNull: true // DOČASNĚ true, aby prošel ALTER TABLE
     },
     date: {
          type: DataTypes.DATEONLY,
