@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 const sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: '/data/apartmany.db', // Cesta na perzistentním disku Renderu
-    logging: console.log // Zapne logování SQL dotazů pro ladění na Renderu (můžete nastavit na false v produkci)
+    logging: false // V produkci můžeme logování SQL vypnout, pro ladění console.log
 });
 
 // --- Definice modelu Uzivatel ---
@@ -44,7 +44,7 @@ const Uzivatel = sequelize.define('uzivatel', {
          type: DataTypes.STRING,
          allowNull: false
     },
-    zaplaceno: {
+    zaplaceno: { // Sloupec pro stav "Dostavil se" / "Nedostavil se"
         type: DataTypes.STRING,
         defaultValue: 'Dostavil se'
     },
@@ -62,7 +62,7 @@ const Uzivatel = sequelize.define('uzivatel', {
     },
     timeEnd: {
         type: DataTypes.TIME,
-        allowNull: true,
+        allowNull: true, // Ponecháno allowNull: true, validace povinnosti je v aplikaci
         defaultValue: null
     },
     date: {
@@ -112,22 +112,19 @@ app.post('/uzivatele', async (req, res) => {
         console.log('RENDER LOG: Přijatá data pro novou rezervaci:', req.body);
         const dataToCreate = { ...req.body };
 
-        // Převod prázdného emailu na null pro správnou validaci a uložení
         if (dataToCreate.email !== undefined && dataToCreate.email.trim() === '') {
-            dataToCreate.email = null;
+            dataToCreate.email = null; // Zajistí, že prázdný email je null
         }
 
-        // Základní validace povinných polí
-        if (!dataToCreate.jmeno || !dataToCreate.telefon || !dataToCreate.cisloBytu || !dataToCreate.time || !dataToCreate.date || dataToCreate.timeEnd === undefined || !dataToCreate.zaplaceno) {
+        if (!dataToCreate.jmeno || !dataToCreate.telefon || !dataToCreate.cisloBytu || !dataToCreate.time || !dataToCreate.date || dataToCreate.timeEnd === undefined  || !dataToCreate.zaplaceno) {
              return res.status(400).json({ error: 'Chybí povinné údaje (jmeno, telefon, cisloBytu, time, date, timeEnd, zaplaceno).' });
         }
-        // Validace formátu emailu v modelu se uplatní, pokud dataToCreate.email není null
 
         const uzivatel = await Uzivatel.create(dataToCreate);
         res.status(201).json(uzivatel);
     } catch (err) {
         console.error('RENDER LOG: Chyba při vytváření rezervace:', err);
-         if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
+         if (err.name === 'SequelizeValidationError') { // Zachytí i chybu validace emailu
              return res.status(400).json({ error: err.errors.map(e => e.message).join(', ') });
          }
         res.status(500).json({ error: 'Nastala chyba při ukládání rezervace.' });
@@ -140,16 +137,13 @@ app.put('/uzivatele/:id', async (req, res) => {
         const userId = req.params.id;
         const dataToUpdate = { ...req.body };
 
-        // Převod prázdného emailu na null
         if (dataToUpdate.email !== undefined && dataToUpdate.email.trim() === '') {
-            dataToUpdate.email = null;
+            dataToUpdate.email = null; // Zajistí, že prázdný email je null
         }
 
-        // Základní validace povinných polí
         if (!dataToUpdate.jmeno || !dataToUpdate.telefon || !dataToUpdate.cisloBytu || !dataToUpdate.time || !dataToUpdate.date || dataToUpdate.timeEnd === undefined || !dataToUpdate.zaplaceno) {
              return res.status(400).json({ error: 'Chybí povinné údaje.' });
         }
-        // Validace formátu emailu v modelu se uplatní, pokud dataToUpdate.email není null
 
         const [numberOfAffectedRows] = await Uzivatel.update(dataToUpdate, {
             where: { id: userId },
@@ -160,18 +154,33 @@ app.put('/uzivatele/:id', async (req, res) => {
             const updatedUser = await Uzivatel.findByPk(userId);
             res.json(updatedUser);
         } else {
-            // Mohlo se stát, že záznam existoval, ale data byla stejná, takže update neproběhl.
-            // Nebo záznam neexistoval. Pro jistotu vrátíme aktuální stav.
             const userExists = await Uzivatel.findByPk(userId);
-            if (userExists) {
-                res.json(userExists); // Data byla stejná, vracíme existující
+            if (userExists) { // Záznam existuje, ale data byla stejná
+                // Zkontrolujeme, zda odeslaná data skutečně odpovídají uloženým (kvůli emailu '' vs null)
+                let dataMatched = true;
+                for (const key in dataToUpdate) {
+                    if (key === 'email' && dataToUpdate[key] === null && userExists[key] === '') { // Frontend mohl poslat '', DB má ''
+                        continue;
+                    }
+                    if (String(dataToUpdate[key]) !== String(userExists[key])) { // Porovnáváme jako stringy pro jednoduchost
+                        dataMatched = false;
+                        break;
+                    }
+                }
+                if (dataMatched || (dataToUpdate.email === null && (userExists.email === null || userExists.email === ''))) {
+                     res.json(userExists);
+                } else {
+                    // Pokud se data liší, ale update neproběhl, může to být chyba
+                    console.warn(`RENDER LOG: Aktualizace pro ID ${userId} neovlivnila žádné řádky, ale data se zdají být odlišná.`);
+                    res.status(404).json({ error: 'Rezervace nalezena, ale aktualizace neproběhla (možná stejná data nebo chyba).' });
+                }
             } else {
                 res.status(404).json({ error: 'Rezervace nenalezena pro aktualizaci.' });
             }
         }
     } catch (err) {
         console.error(`RENDER LOG: Chyba při aktualizaci rezervace ID ${req.params.id}:`, err);
-         if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
+         if (err.name === 'SequelizeValidationError') { // Zachytí i chybu validace emailu
              return res.status(400).json({ error: err.errors.map(e => e.message).join(', ') });
          }
         res.status(500).json({ error: 'Nastala chyba při aktualizaci rezervace.' });
