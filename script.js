@@ -116,6 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         usersToDisplay.forEach(user => {
             const row = reservationsTbody.insertRow();
+            // Přidání tříd pro barvení celého řádku
+            row.classList.remove('status-row-arrived', 'status-row-not-arrived'); // Reset
+            if (user.zaplaceno === 'Dostavil se') {
+                row.classList.add('status-row-arrived');
+            } else if (user.zaplaceno === 'Nedostavil se') {
+                row.classList.add('status-row-not-arrived');
+            }
+
             let formattedDate = user.date;
             try {
                 if (user.date) {
@@ -135,15 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.insertCell().textContent = user.timeEnd ? user.timeEnd.substring(0, 5) : 'N/A';
 
             const statusCell = row.insertCell();
-            const statusSpan = document.createElement('span');
-            statusSpan.textContent = user.zaplaceno || 'Dostavil se'; // Výchozí, pokud by bylo null
-            statusSpan.classList.remove('status-arrived', 'status-not-arrived');
-            if (user.zaplaceno === 'Dostavil se') {
-                statusSpan.classList.add('status-arrived');
-            } else if (user.zaplaceno === 'Nedostavil se') {
-                statusSpan.classList.add('status-not-arrived');
-            }
-            statusCell.appendChild(statusSpan);
+            statusCell.textContent = user.zaplaceno || 'Dostavil se'; // Text zůstává, barva je na řádku
 
             const notesCell = row.insertCell();
             const noteText = user.poznamky || '';
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateZoneSelect();
         populateTimeSelects();
         dateInput.value = '';
-        zaplacenoSelect.value = 'Dostavil se'; // VÝCHOZÍ STAV "Dostavil se"
+        zaplacenoSelect.value = 'Dostavil se';
         poznamkyInput.value = '';
 
         formSectionTitle.textContent = 'Přidat rezervaci';
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
          if (!data.telefon) { setInputError(telefonInput, true); hasError = true; }
          if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
             setInputError(emailInput, true); hasError = true;
-            if (!(hasError && ( !data.jmeno || !data.telefon || !data.cisloBytu || !data.time || !data.timeEnd || !data.date || !data.zaplaceno ) )) { // Zobrazit jen pokud ostatní jsou OK
+            if (!(hasError && ( !data.jmeno || !data.telefon || !data.cisloBytu || !data.time || !data.timeEnd || !data.date || !data.zaplaceno ) )) {
                  showFormError('Zadejte platný formát e-mailu nebo nechte pole prázdné.');
                  showFormError.calledForEmailFormat = true;
             }
