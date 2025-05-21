@@ -9,8 +9,7 @@ const path = require('path');
 
 // --- Nastavení aplikace Express ---
 const app = express();
-// Použít port z proměnné prostředí (pro Render) nebo výchozí 5000 pro lokální vývoj
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5000; // Pro Render.com a lokální vývoj
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -24,38 +23,44 @@ app.get('/', (req, res) => {
 // --- Připojení k databázi Sequelize ---
 const sequelize = new Sequelize({
     dialect: 'sqlite',
-    // Cesta k databázi na perzistentním disku Renderu
-    storage: '/data/apartmany.db', // Důležité pro Render!
-    logging: console.log // Zapne logování SQL dotazů pro ladění (můžete nastavit na false v produkci)
+    storage: process.env.NODE_ENV === 'production' ? '/data/apartmany.db' : './apartmany.db', // Cesta pro Render a lokálně
+    logging: process.env.NODE_ENV === 'production' ? false : console.log // Logování SQL jen lokálně
 });
 
 // --- Definice modelu Uzivatel ---
 const Uzivatel = sequelize.define('uzivatel', {
-    jmeno: {
+    jmeno: { // Ponecháno jako 'jmeno', i když na frontendu je 'Označení'
         type: DataTypes.STRING,
         allowNull: false
     },
-    email: {
+    email: { // NOVÉ POLE
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true, // Může být null
+        validate: {
+            isEmail: true // Volitelná validace na straně serveru
+        }
     },
     telefon: {
          type: DataTypes.STRING,
          allowNull: false
     },
-    zaplaceno: {
+    zaplaceno: { // Název sloupce zůstává 'zaplaceno', ale bude ukládat 'Dostavil se' / 'Nedostavil se'
         type: DataTypes.STRING,
-        defaultValue: 'Nezaplaceno'
+        defaultValue: 'Nedostavil se'
     },
     poznamky: {
         type: DataTypes.TEXT,
         allowNull: true
     },
-    cisloBytu: {
+    cisloBytu: { // Zóna
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    time: {
+    time: { // Začátek rezervace
+        type: DataTypes.TIME,
+        allowNull: false
+    },
+    timeEnd: { // NOVÉ POLE pro konec rezervace
         type: DataTypes.TIME,
         allowNull: false
     },
@@ -64,25 +69,33 @@ const Uzivatel = sequelize.define('uzivatel', {
          allowNull: false
     }
 }, {
-    tableName: 'uzivatele',   // Explicitně definovaný název tabulky
-    timestamps: false          // Bez automatických sloupců createdAt a updatedAt
+    tableName: 'uzivatele',
+    timestamps: false
 });
 
-// --- Deaktivovaná synchronizace databáze pro běžný provoz ---
-// Tento blok by měl být odkomentován a použit POUZE JEDNORÁZOVĚ
-// při úplně prvním nasazení na Render (nebo pokud potřebujete
-// znovu vytvořit tabulku na prázdném perzistentním disku).
-// Po úspěšném vytvoření tabulky ho ZNOVU ZAKOMENTUJTE.
+// --- Synchronizace databáze (POUZE PRO VÝVOJ nebo JEDNORÁZOVÉ VYTVOŘENÍ/ÚPRAVU TABULKY) ---
+// Pro produkci na Renderu by tento blok měl být zakomentován po prvotní inicializaci.
+if (process.env.NODE_ENV !== 'production') { // Spustit sync jen pokud není produkce
+    sequelize.sync({ alter: true }) // 'alter: true' se pokusí upravit tabulku, aby odpovídala modelu
+        .then(() => {
+            console.log('LOKÁLNÍ VÝVOJ: Databáze a tabulka "uzivatele" synchronizovány (alter:true).');
+        })
+        .catch(err => {
+            console.error('LOKÁLNÍ VÝVOJ: Chyba synchronizace databáze:', err);
+        });
+}
+// Pro první deploy na Render s novými sloupci byste mohli dočasně odkomentovat:
 /*
-sequelize.sync({ alter: true })
-    .then(() => {
-        console.log('RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být vytvořena/synchronizována.');
-        console.log('RENDER DEPLOY (SYNC): PO ÚSPĚŠNÉM NASAZENÍ TENTO BLOK ZNOVU ZAKOMENTUJTE v server.js a commitněte změnu!');
-    })
-    .catch(err => {
-        console.error('RENDER DEPLOY (SYNC): Chyba při synchronizaci:', err);
-    });
-    //
+if (process.env.NODE_ENV === 'production') {
+    sequelize.sync({ alter: true })
+        .then(() => {
+            console.log('RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být vytvořena/synchronizována.');
+            console.log('RENDER DEPLOY (SYNC): PO ÚSPĚŠNÉM NASAZENÍ TENTO BLOK ZNOVU ZAKOMENTUJTE a commitněte změnu!');
+        })
+        .catch(err => {
+            console.error('RENDER DEPLOY (SYNC): Chyba při synchronizaci:', err);
+        });
+}
 */
 // --- Konec bloku pro synchronizaci ---
 
@@ -109,14 +122,23 @@ app.get('/uzivatele', async (req, res) => {
 app.post('/uzivatele', async (req, res) => {
     try {
         console.log('Přijatá data pro novou rezervaci:', req.body);
-        if (!req.body.jmeno || !req.body.telefon || !req.body.cisloBytu || !req.body.time || !req.body.date) {
-             return res.status(400).json({ error: 'Chybí povinné údaje.' });
+        // Základní validace na serveru
+        if (!req.body.jmeno || !req.body.telefon || !req.body.cisloBytu || !req.body.time || !req.body.date || !req.body.timeEnd || !req.body.zaplaceno) {
+             return res.status(400).json({ error: 'Chybí povinné údaje (jmeno, telefon, cisloBytu, time, date, timeEnd, zaplaceno).' });
         }
+        // Volitelná validace pro email, pokud je zadán
+        if (req.body.email && typeof req.body.email === 'string' && req.body.email.trim() !== '') {
+            // Jednoduchá kontrola formátu emailu (pro robustnější použijte knihovnu jako validator.js)
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email)) {
+                return res.status(400).json({ error: 'Neplatný formát e-mailu.' });
+            }
+        }
+
         const uzivatel = await Uzivatel.create(req.body);
         res.status(201).json(uzivatel);
     } catch (err) {
         console.error('Chyba při vytváření rezervace:', err);
-         if (err.name === 'SequelizeValidationError') {
+         if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
              return res.status(400).json({ error: err.errors.map(e => e.message).join(', ') });
          }
         res.status(500).json({ error: 'Nastala chyba při ukládání rezervace.' });
@@ -127,9 +149,15 @@ app.post('/uzivatele', async (req, res) => {
 app.put('/uzivatele/:id', async (req, res) => {
     try {
         const userId = req.params.id;
-         if (!req.body.jmeno || !req.body.telefon || !req.body.cisloBytu || !req.body.time || !req.body.date) {
+         if (!req.body.jmeno || !req.body.telefon || !req.body.cisloBytu || !req.body.time || !req.body.date || !req.body.timeEnd || !req.body.zaplaceno) {
              return res.status(400).json({ error: 'Chybí povinné údaje.' });
          }
+        if (req.body.email && typeof req.body.email === 'string' && req.body.email.trim() !== '') {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email)) {
+                return res.status(400).json({ error: 'Neplatný formát e-mailu.' });
+            }
+        }
+
         const [numberOfAffectedRows] = await Uzivatel.update(req.body, {
              where: { id: userId }
          });
@@ -141,7 +169,7 @@ app.put('/uzivatele/:id', async (req, res) => {
         }
     } catch (err) {
         console.error(`Chyba při aktualizaci rezervace ID ${req.params.id}:`, err);
-         if (err.name === 'SequelizeValidationError') {
+         if (err.name === 'SequelizeValidationError' || err.name === 'SequelizeUniqueConstraintError') {
              return res.status(400).json({ error: err.errors.map(e => e.message).join(', ') });
          }
         res.status(500).json({ error: 'Nastala chyba při aktualizaci rezervace.' });
@@ -168,6 +196,8 @@ app.delete('/uzivatele/:id', async (req, res) => {
 
 // --- Spuštění serveru ---
 app.listen(port, () => {
-    console.log(`Server běží na portu ${port}. Přístup přes veřejnou URL Renderu (např. https://apartmany.onrender.com).`);
-    console.log('POZN: sequelize.sync() by měl být zakomentován pro běžný provoz.');
+    console.log(`Server běží na portu ${port}. Přístup přes veřejnou URL Renderu nebo http://localhost:${port} pro lokální vývoj.`);
+    if (process.env.NODE_ENV === 'production' || !process.env.NODE_ENV) { // Pokud je produkce nebo NODE_ENV není nastaven
+        console.log('POZN: sequelize.sync() je deaktivováno pro běžný provoz.');
+    }
 });
