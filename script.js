@@ -1,22 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Form Elements
     const formSectionTitle = document.querySelector('.form-section h2');
-    const jmenoInput = document.getElementById('jmeno'); // Bude pro "Označení"
+    const jmenoInput = document.getElementById('jmeno');
     const telefonInput = document.getElementById('telefon');
-    const emailInput = document.getElementById('email'); // NOVÉ
+    const emailInput = document.getElementById('email');
     const cisloBytuSelect = document.getElementById('cisloBytu');
-    const timeSelect = document.getElementById('time'); // Začátek rezervace
-    const timeEndSelect = document.getElementById('time-end'); // NOVÉ - Konec rezervace
+    const timeSelect = document.getElementById('time');
+    const timeEndSelect = document.getElementById('time-end');
     const dateInput = document.getElementById('date');
-    const zaplacenoSelect = document.getElementById('zaplaceno'); // Nyní pro "Stav" (Dostavil se / Nedostavil se)
+    const zaplacenoSelect = document.getElementById('zaplaceno');
     const poznamkyInput = document.getElementById('poznamky');
     const addUserButton = document.getElementById('add-user');
 
     // List & Filter Elements
     const reservationsTbody = document.getElementById('reservations-tbody');
-    const filterNameInput = document.getElementById('filter-name'); // Pro "Označení"
+    const filterNameInput = document.getElementById('filter-name');
     const filterPhoneInput = document.getElementById('filter-phone');
-    const filterEmailInput = document.getElementById('filter-email'); // NOVÉ
+    const filterEmailInput = document.getElementById('filter-email');
 
     // Message Elements
     const formErrorMessage = document.getElementById('form-error-message');
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const statusCell = row.insertCell();
             const statusSpan = document.createElement('span');
-            statusSpan.textContent = user.zaplaceno || 'Nedostavil se';
+            statusSpan.textContent = user.zaplaceno || 'Dostavil se'; // Výchozí, pokud by bylo null
             statusSpan.classList.remove('status-arrived', 'status-not-arrived');
             if (user.zaplaceno === 'Dostavil se') {
                 statusSpan.classList.add('status-arrived');
@@ -194,11 +194,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Form Handling & API Calls ---
-    function setInputError(inputElement, isError) { /* ... (stejné jako dříve) ... */ }
-    function showFormError(message) { /* ... (stejné jako dříve) ... */ }
-    function hideFormError() { /* ... (stejné jako dříve) ... */ }
-    function showFormSuccess(message) { /* ... (stejné jako dříve) ... */ }
-    function hideFormSuccess() { /* ... (stejné jako dříve) ... */ }
+    function setInputError(inputElement, isError) {
+        if (isError) { inputElement.style.borderColor = 'red'; inputElement.classList.add('input-error'); }
+        else { inputElement.style.borderColor = ''; inputElement.classList.remove('input-error'); }
+    }
+    function showFormError(message) {
+        formErrorMessage.textContent = message; formErrorMessage.style.display = 'block';
+        formSuccessMessage.style.display = 'none';
+    }
+    function hideFormError() { formErrorMessage.style.display = 'none'; }
+    function showFormSuccess(message) {
+        formSuccessMessage.textContent = message; formSuccessMessage.style.display = 'block';
+        formErrorMessage.style.display = 'none';
+        setTimeout(() => { hideFormSuccess(); }, 4000);
+    }
+    function hideFormSuccess() { formSuccessMessage.style.display = 'none'; }
 
     function populateFormForEdit(user) {
         hideFormError(); hideFormSuccess();
@@ -209,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timeSelect.value = user.time || "";
         timeEndSelect.value = user.timeEnd || "";
         dateInput.value = user.date;
-        zaplacenoSelect.value = user.zaplaceno || 'Dostavil se'; // Výchozí pro editaci, pokud není nastaveno
+        zaplacenoSelect.value = user.zaplaceno || 'Dostavil se';
         poznamkyInput.value = user.poznamky || "";
 
         formSectionTitle.textContent = 'Upravit rezervaci';
@@ -222,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateZoneSelect();
         populateTimeSelects();
         dateInput.value = '';
-        zaplacenoSelect.value = 'Dostavil se'; // ZMĚNA ZDE: Výchozí stav "Dostavil se"
+        zaplacenoSelect.value = 'Dostavil se'; // VÝCHOZÍ STAV "Dostavil se"
         poznamkyInput.value = '';
 
         formSectionTitle.textContent = 'Přidat rezervaci';
@@ -245,10 +255,12 @@ document.addEventListener('DOMContentLoaded', () => {
          if (!data.telefon) { setInputError(telefonInput, true); hasError = true; }
          if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
             setInputError(emailInput, true); hasError = true;
-            // Zobrazit specifickou chybu jen pokud ostatní povinná pole jsou OK
-            if (data.jmeno && data.telefon && data.cisloBytu && data.time && data.timeEnd && data.date && data.zaplaceno) {
+            if (!(hasError && ( !data.jmeno || !data.telefon || !data.cisloBytu || !data.time || !data.timeEnd || !data.date || !data.zaplaceno ) )) { // Zobrazit jen pokud ostatní jsou OK
                  showFormError('Zadejte platný formát e-mailu nebo nechte pole prázdné.');
+                 showFormError.calledForEmailFormat = true;
             }
+         } else {
+            showFormError.calledForEmailFormat = false;
          }
          if (!data.cisloBytu) { setInputError(cisloBytuSelect, true); hasError = true; }
          if (!data.time) { setInputError(timeSelect, true); hasError = true; }
@@ -256,19 +268,12 @@ document.addEventListener('DOMContentLoaded', () => {
          if (!data.date) { setInputError(dateInput, true); hasError = true; }
          if (!data.zaplaceno) { setInputError(zaplacenoSelect, true); hasError = true; }
 
-         // Pokud je chyba jinde než v emailu, a email je špatně, nezobrazuj obecnou chybu
-         if (hasError && !(data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) && !data.jmeno && !data.telefon && !data.cisloBytu && !data.time && !data.timeEnd && !data.date && !data.zaplaceno)) {
-            // Obecná chyba se zobrazí jen pokud není specifická chyba pro email
-            if (!showFormError.calledForEmailFormat) { // Zamezení dvojího zobrazení
-                 showFormError('Prosím vyplňte všechna povinná pole (*) a opravte chyby.');
-            }
-         }
-         showFormError.calledForEmailFormat = (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email));
-
-
-         return !hasError;
+        if (hasError && !showFormError.calledForEmailFormat) {
+             showFormError('Prosím vyplňte všechna povinná pole (*) a opravte chyby.');
+        }
+        return !hasError;
     }
-    showFormError.calledForEmailFormat = false; // Inicializace
+    showFormError.calledForEmailFormat = false;
 
     async function addUser() {
         const newUser = {
@@ -283,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             poznamky: poznamkyInput.value.trim()
         };
 
-        if (!validateForm(newUser)) { return; } // Validace zobrazí chybu
+        if (!validateForm(newUser)) { return; }
         hideFormError();
         console.log('Odesílání (POST):', newUser);
         try {
@@ -306,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             zaplaceno: zaplacenoSelect.value,
             poznamky: poznamkyInput.value.trim()
         };
-        if (!validateForm(updatedUser)) { return; } // Validace zobrazí chybu
+        if (!validateForm(updatedUser)) { return; }
         hideFormError();
         console.log(`Odesílání (PUT) pro ID ${userId}:`, updatedUser);
         try {
