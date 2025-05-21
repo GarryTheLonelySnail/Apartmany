@@ -29,11 +29,11 @@ const sequelize = new Sequelize({
 
 // --- Definice modelu Uzivatel (s novými sloupci email a timeEnd) ---
 const Uzivatel = sequelize.define('uzivatel', {
-    jmeno: { // Ponecháno jako 'jmeno', i když na frontendu je 'Označení'
+    jmeno: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    email: { // NOVÉ POLE
+    email: {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
@@ -46,13 +46,13 @@ const Uzivatel = sequelize.define('uzivatel', {
     },
     zaplaceno: { // Název sloupce zůstává 'zaplaceno', ukládá 'Dostavil se' / 'Nedostavil se'
         type: DataTypes.STRING,
-        defaultValue: 'Dostavil se' // Změna výchozí hodnoty v modelu
+        defaultValue: 'Dostavil se' // VÝCHOZÍ HODNOTA ZMĚNĚNA
     },
     poznamky: {
         type: DataTypes.TEXT,
         allowNull: true
     },
-    cisloBytu: { // Zóna
+    cisloBytu: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
@@ -60,7 +60,7 @@ const Uzivatel = sequelize.define('uzivatel', {
         type: DataTypes.TIME,
         allowNull: false
     },
-    timeEnd: { // NOVÉ POLE pro konec rezervace
+    timeEnd: { // Konec rezervace
         type: DataTypes.TIME,
         allowNull: false
     },
@@ -74,10 +74,11 @@ const Uzivatel = sequelize.define('uzivatel', {
 });
 
 // --- DOČASNĚ ODKOMENTUJTE TENTO BLOK POUZE PRO JEDNO NASAZENÍ NA RENDER ---
-// --- ABY SE AKTUALIZOVALO SCHÉMA DATABÁZE (PŘIDALY SLOUPCE email a timeEnd) ---
+// --- ABY SE AKTUALIZOVALO SCHÉMA DATABÁZE (PŘIDALY/UPRAVILY SLOUPCE) ---
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('<<<<< RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být aktualizována (alter:true). >>>>>');
+        console.log('<<<<< RENDER DEPLOY (SYNC): Zkontrolujte logy pro SQL příkazy jako ALTER TABLE. >>>>>');
         console.log('<<<<< RENDER DEPLOY (SYNC): PO ÚSPĚŠNÉM NASAZENÍ TENTO BLOK ZNOVU ZAKOMENTUJTE v server.js a commitněte změnu! >>>>>');
     })
     .catch(err => {
@@ -86,7 +87,7 @@ sequelize.sync({ alter: true })
 // --- KONEC DOČASNÉ ČÁSTI ---
 
 
-// --- API Endpoints (zůstávají stejné jako v předchozí verzi) ---
+// --- API Endpoints ---
 // GET /uzivatele
 app.get('/uzivatele', async (req, res) => {
     try {
@@ -171,5 +172,6 @@ app.delete('/uzivatele/:id', async (req, res) => {
 // --- Spuštění serveru ---
 app.listen(port, () => {
     console.log(`Server běží na portu ${port}. Přístup přes veřejnou URL Renderu.`);
-    // console.log('POZN: sequelize.sync() je deaktivováno pro běžný provoz.'); // Tuto zprávu odkomentujte až po zakomentování sync bloku
+    // Následující řádek odkomentujte až po finálním zakomentování sequelize.sync() bloku
+    // console.log('POZN: sequelize.sync() je deaktivováno pro běžný provoz.');
 });
