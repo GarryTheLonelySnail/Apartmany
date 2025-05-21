@@ -59,6 +59,7 @@ body {
 }
 
 input[type="text"],
+input[type="email"], /* Přidáno pro email input */
 input[type="date"],
 select,
 textarea {
@@ -132,7 +133,6 @@ textarea {
      border-color: #545b62;
 }
 
-
 /* --- List Controls Styles --- */
 .list-controls {
     display: flex;
@@ -162,7 +162,7 @@ textarea {
 .pagination-info {
     font-size: 0.9em;
     color: #6c757d;
-    margin: 0 10px; /* Add some space */
+    margin: 0 10px;
 }
 
 .pagination-controls button {
@@ -176,7 +176,6 @@ textarea {
     cursor: not-allowed;
     opacity: 0.6;
 }
-
 
 /* --- Table Styles --- */
 .list-section {
@@ -212,46 +211,24 @@ textarea {
 #reservations-table tbody tr:hover {
      background-color: #e2e6ea;
 }
-/* Status row styling */
-#reservations-table tr.paid td {
-    background-color: #d4edda !important; /* Zelená pro zaplaceno */
-}
-#reservations-table tr.paid {
-    border-left: 4px solid #28a745;
-}
 
-#reservations-table tr.cancelled td {
-    background-color: #f8d7da !important; /* Světle červená pro storno */
-    color: #58151c;
-    font-weight: bold; /* Opraveno z text-decoration: bold; */
-}
-#reservations-table tr.cancelled {
-     border-left: 4px solid #dc3545;
-}
-
-
-#reservations-table tr.unpaid td {
-    background-color: #f8d7da !important; 
-    color: #58151c; 
-}
-#reservations-table tr.unpaid {
-     border-left: 4px solid #dc3545; 
-}
-
-#reservations-table td .status-paid {
+/* Styly pro text stavu */
+#reservations-table td .status-arrived { /* Dostavil se */
     color: green;
     font-weight: bold;
-    background-color: #d4edda; /* Lehké zelené pozadí */
-    padding: 2px 6px;
+    background-color: #d4edda; /* Světle zelené pozadí */
+    padding: 3px 7px;
     border-radius: 4px;
+    display: inline-block; /* Aby fungoval padding a border-radius správně */
 }
 
-#reservations-table td .status-unpaid {
+#reservations-table td .status-not-arrived { /* Nedostavil se */
     color: red;
     font-weight: bold;
-    background-color: #f8d7da; /* Lehké červené pozadí */
-    padding: 2px 6px;
+    background-color: #f8d7da; /* Světle červené pozadí */
+    padding: 3px 7px;
     border-radius: 4px;
+    display: inline-block;
 }
 
 /* Button styling within table */
@@ -303,7 +280,7 @@ textarea {
     border-color: #c3e6cb;
 }
 
-/* --- Calendar Section Styles --- */
+/* --- Calendar Section Styles (pokud by byl použit) --- */
 .calendar-section {
     margin-bottom: 30px;
     padding: 25px;
@@ -325,24 +302,16 @@ textarea {
     position: relative;
 }
 
-#div_block-16-15 {
-    display: none;
-  }
-
-  #_header-2-15 {
-    display: none;
-  }
-
 /* --- Layout Order --- */
 .app-main {
     display: flex;
     flex-direction: column;
 }
 
-.filter-section { order: 1; }   /* Filtr první */
-.list-section { order: 2; }     /* Seznam druhý */
-.form-section { order: 3; }     /* Formulář třetí */
-.calendar-section { order: 4; } /* Kalendář poslední */
+.filter-section { order: 1; }
+.list-section { order: 2; }
+.form-section { order: 3; }
+.calendar-section { order: 4; }
 
 
 /* Responsive Adjustments */
@@ -367,15 +336,15 @@ textarea {
          font-size: 13px;
      }
      .list-controls {
-         justify-content: center; /* Centrovat na malých obrazovkách */
-         flex-direction: column; /* Pod sebe */
-         align-items: stretch; /* Roztáhnout prvky */
+         justify-content: center;
+         flex-direction: column;
+         align-items: stretch;
      }
      .pagination-controls {
-         text-align: center; /* Centrovat tlačítka */
+         text-align: center;
          margin-top: 10px;
      }
      .rows-per-page {
-         text-align: center; /* Centrovat výběr počtu řádků */
+         text-align: center;
      }
 }
