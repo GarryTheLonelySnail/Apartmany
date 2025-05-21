@@ -59,7 +59,7 @@ body {
 }
 
 input[type="text"],
-input[type="email"], /* Přidáno pro email input */
+input[type="email"],
 input[type="date"],
 select,
 textarea {
@@ -205,31 +205,51 @@ textarea {
     z-index: 1;
 }
 
+/* Odstraněno nth-child(even) pro konzistentní barvení řádku */
+/*
 #reservations-table tbody tr:nth-child(even) {
      background-color: #f8f9fa;
 }
+*/
 #reservations-table tbody tr:hover {
-     background-color: #e2e6ea;
+     background-color: #e2e6ea; /* Hover efekt zůstává */
 }
 
-/* Styly pro text stavu */
-#reservations-table td .status-arrived { /* Dostavil se */
+/* Styly pro barvení celého řádku podle stavu */
+#reservations-table tr.status-row-arrived { /* Dostavil se */
+    background-color: #d4edda !important; /* Světle zelené pozadí pro celý řádek */
+    /* Můžete přidat i border, pokud chcete výraznější oddělení */
+    /* border-left: 4px solid #28a745 !important; */
+}
+/* Volitelně můžete chtít i jinou barvu textu pro lepší kontrast */
+/* #reservations-table tr.status-row-arrived td { color: #155724; } */
+
+
+#reservations-table tr.status-row-not-arrived { /* Nedostavil se */
+    background-color: #f8d7da !important; /* Světle červené pozadí pro celý řádek */
+    /* border-left: 4px solid #dc3545 !important; */
+}
+/* #reservations-table tr.status-row-not-arrived td { color: #721c24; } */
+
+
+/* Styly pro text stavu (pokud byste chtěli kombinovat nebo jen text) - nyní méně relevantní, pokud barvíme celý řádek */
+/*
+#reservations-table td .status-arrived {
     color: green;
     font-weight: bold;
-    background-color: #d4edda; /* Světle zelené pozadí */
     padding: 3px 7px;
     border-radius: 4px;
     display: inline-block;
 }
 
-#reservations-table td .status-not-arrived { /* Nedostavil se */
+#reservations-table td .status-not-arrived {
     color: red;
     font-weight: bold;
-    background-color: #f8d7da; /* Světle červené pozadí */
     padding: 3px 7px;
     border-radius: 4px;
     display: inline-block;
 }
+*/
 
 /* Button styling within table */
 #reservations-table .btn {
@@ -280,7 +300,7 @@ textarea {
     border-color: #c3e6cb;
 }
 
-/* --- Calendar Section Styles (pokud by byl použit) --- */
+/* --- Calendar Section Styles --- */
 .calendar-section {
     margin-bottom: 30px;
     padding: 25px;
