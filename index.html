@@ -19,12 +19,16 @@
             <section class="filter-section">
                 <h2>Filtrovat</h2>
                 <div class="input-group">
-                    <label for="filter-name"><b>Filtrovat podle názvu</b></label>
-                    <input type="text" id="filter-name" placeholder="Hledat podle jména">
+                    <label for="filter-name"><b>Filtrovat podle označení</b></label>
+                    <input type="text" id="filter-name" placeholder="Hledat podle označení">
                 </div>
                 <div class="input-group">
                     <label for="filter-phone"><b>Filtrovat podle telefonního čísla</b></label>
                     <input type="text" id="filter-phone" placeholder="Hledat podle telefonního čísla">
+                </div>
+                <div class="input-group">
+                    <label for="filter-email"><b>Filtrovat podle e-mailu</b></label>
+                    <input type="text" id="filter-email" placeholder="Hledat podle e-mailu">
                 </div>
             </section>
 
@@ -50,12 +54,13 @@
                 <table id="reservations-table">
                   <thead>
                     <tr>
-                      <th>Jméno</th>
+                      <th>Označení</th>
                       <th>Telefon</th>
-                      <th>Zóna</th>
+                      <th>E-mail</th> <th>Zóna</th>
                       <th>Datum</th>
-                      <th>Čas</th>
-                      <th>Platba</th>
+                      <th>Začátek</th>
+                      <th>Konec</th>
+                      <th>Stav</th>
                       <th style="width: 20%;">Poznámky</th>
                       <th>Akce</th>
                     </tr>
@@ -76,24 +81,31 @@
                     <input type="text" id="telefon" placeholder="Vložte telefonní číslo">
                 </div>
                 <div class="input-group">
+                    <label for="email"><b>E-mail</b></label> <input type="email" id="email" placeholder="Vložte e-mail">
+                </div>
+                <div class="input-group">
                     <label for="cisloBytu"><b>Zóna *</b></label>
                     <select id="cisloBytu">
                          </select>
-                </div>
-                <div class="input-group">
-                    <label for="time"><b>Čas rezervace *</b></label>
-                    <select id="time">
-                        </select>
                 </div>
                 <div class="input-group">
                     <label for="date"><b>Datum *</b></label>
                     <input type="date" id="date">
                 </div>
                 <div class="input-group">
-                    <label><b>Stav platby:</b></label>
-                    <select id="zaplaceno">
-                        <option value="Nezaplaceno">Nezaplaceno</option>
-                        <option value="Zaplaceno">Zaplaceno</option>
+                    <label for="time"><b>Začátek rezervace *</b></label>
+                    <select id="time">
+                        </select>
+                </div>
+                <div class="input-group">
+                    <label for="time-end"><b>Konec rezervace *</b></label>
+                    <select id="time-end">
+                        </select>
+                </div>
+                <div class="input-group">
+                    <label><b>Stav *</b></label>
+                    <select id="zaplaceno"> <option value="Nedostavil se">Nedostavil se</option>
+                        <option value="Dostavil se">Dostavil se</option>
                     </select>
                 </div>
                 <div class="input-group">
