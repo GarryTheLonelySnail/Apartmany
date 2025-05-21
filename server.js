@@ -75,7 +75,7 @@ const Uzivatel = sequelize.define('uzivatel', {
 
 // --- DOČASNĚ ODKOMENTUJTE TENTO BLOK POUZE PRO JEDNO NASAZENÍ NA RENDER ---
 // --- ABY SE AKTUALIZOVALO SCHÉMA DATABÁZE (PŘIDALY/UPRAVILY SLOUPCE) ---
-
+/*
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('<<<<< RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být aktualizována (alter:true). >>>>>');
@@ -86,7 +86,7 @@ sequelize.sync({ alter: true })
         console.error('<<<<< RENDER DEPLOY (SYNC): Chyba při synchronizaci databáze:', err);
     });
 // --- KONEC DOČASNÉ ČÁSTI ---
-
+*/
 
 // --- API Endpoints ---
 // GET /uzivatele
