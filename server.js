@@ -9,7 +9,7 @@ const path = require('path');
 
 // --- Nastavení aplikace Express ---
 const app = express();
-const port = process.env.PORT || 5000; // Pro Render.com a lokální vývoj
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -27,7 +27,7 @@ const sequelize = new Sequelize({
     logging: console.log // Zapne logování SQL dotazů pro ladění na Renderu
 });
 
-// --- Definice modelu Uzivatel (s novými sloupci email a timeEnd) ---
+// --- Definice modelu Uzivatel ---
 const Uzivatel = sequelize.define('uzivatel', {
     jmeno: {
         type: DataTypes.STRING,
@@ -35,7 +35,7 @@ const Uzivatel = sequelize.define('uzivatel', {
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: true, // Ponecháno jako allowNull: true
         validate: {
             isEmail: true
         }
@@ -46,7 +46,7 @@ const Uzivatel = sequelize.define('uzivatel', {
     },
     zaplaceno: { // Název sloupce zůstává 'zaplaceno', ukládá 'Dostavil se' / 'Nedostavil se'
         type: DataTypes.STRING,
-        defaultValue: 'Dostavil se' // VÝCHOZÍ HODNOTA ZMĚNĚNA
+        defaultValue: 'Dostavil se'
     },
     poznamky: {
         type: DataTypes.TEXT,
@@ -60,9 +60,10 @@ const Uzivatel = sequelize.define('uzivatel', {
         type: DataTypes.TIME,
         allowNull: false
     },
-    timeEnd: {
+    timeEnd: { // Konec rezervace
         type: DataTypes.TIME,
-        allowNull: true // DOČASNĚ true, aby prošel ALTER TABLE
+        allowNull: true, // DOČASNĚ true, aby prošel ALTER TABLE, pokud tam jsou data
+        defaultValue: null // Výchozí hodnota pro nové sloupce v existujících řádcích
     },
     date: {
          type: DataTypes.DATEONLY,
@@ -74,8 +75,7 @@ const Uzivatel = sequelize.define('uzivatel', {
 });
 
 // --- DOČASNĚ ODKOMENTUJTE TENTO BLOK POUZE PRO JEDNO NASAZENÍ NA RENDER ---
-// --- ABY SE AKTUALIZOVALO SCHÉMA DATABÁZE (PŘIDALY/UPRAVILY SLOUPCE) ---
-/*
+// --- ABY SE AKTUALIZOVALO SCHÉMA DATABÁZE (PŘIDALY SLOUPCE email a timeEnd) ---
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('<<<<< RENDER DEPLOY (SYNC): Tabulka "uzivatele" na /data/apartmany.db by měla být aktualizována (alter:true). >>>>>');
@@ -86,9 +86,9 @@ sequelize.sync({ alter: true })
         console.error('<<<<< RENDER DEPLOY (SYNC): Chyba při synchronizaci databáze:', err);
     });
 // --- KONEC DOČASNÉ ČÁSTI ---
-*/
 
-// --- API Endpoints ---
+
+// --- API Endpoints (zůstávají stejné jako v předchozí verzi) ---
 // GET /uzivatele
 app.get('/uzivatele', async (req, res) => {
     try {
@@ -109,6 +109,7 @@ app.get('/uzivatele', async (req, res) => {
 app.post('/uzivatele', async (req, res) => {
     try {
         console.log('RENDER LOG: Přijatá data pro novou rezervaci:', req.body);
+        // Validace pro povinná pole, včetně timeEnd
         if (!req.body.jmeno || !req.body.telefon || !req.body.cisloBytu || !req.body.time || !req.body.date || !req.body.timeEnd || !req.body.zaplaceno) {
              return res.status(400).json({ error: 'Chybí povinné údaje (jmeno, telefon, cisloBytu, time, date, timeEnd, zaplaceno).' });
         }
