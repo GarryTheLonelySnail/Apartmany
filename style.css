@@ -219,7 +219,7 @@ textarea {
     background-color: #d4edda; /* Světle zelené pozadí */
     padding: 3px 7px;
     border-radius: 4px;
-    display: inline-block; /* Aby fungoval padding a border-radius správně */
+    display: inline-block;
 }
 
 #reservations-table td .status-not-arrived { /* Nedostavil se */
